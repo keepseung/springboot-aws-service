@@ -3,7 +3,7 @@ package com.keepseung.springbootawsservice;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-//@EnableJpaAuditing
+//@EnableJpaAuditing 주석 추가 테스트
 @SpringBootApplication
 public class Application {
 
