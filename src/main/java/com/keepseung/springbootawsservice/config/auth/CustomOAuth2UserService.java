@@ -1,7 +1,7 @@
-package com.keepseung.springbootawsservice.web.domain.auth;
+package com.keepseung.springbootawsservice.config.auth;
 
-import com.keepseung.springbootawsservice.web.domain.auth.dto.OAuthAttributes;
-import com.keepseung.springbootawsservice.web.domain.auth.dto.SessionUser;
+import com.keepseung.springbootawsservice.config.auth.dto.OAuthAttributes;
+import com.keepseung.springbootawsservice.config.auth.dto.SessionUser;
 import com.keepseung.springbootawsservice.web.domain.user.User;
 import com.keepseung.springbootawsservice.web.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +17,10 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpSession;
 import java.util.Collections;
 
+/**
+ * 구글 로그인 이후 가져온 사용자의 정보(email, name, picture)들을 기반으로
+ * 가입, 정보 수정 및 세션 저장을 함
+ */
 @RequiredArgsConstructor
 @Service
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
@@ -28,12 +32,15 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         OAuth2UserService delegate = new DefaultOAuth2UserService();
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
+        // 현재 로그인 진행 중인 서비스를 구분하는 코드이다. (구글인지 네이버인지구분함)
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        String userNameAttributeName = userRequest.getClientRegistration()
-                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+        // OAuth2 로그인 진행시 키가 되는 필드 값이다. Primary Key와 같은 의미
+        // 구글은 기본적으로 "sub"이란 코드를 제공함. 네이버 카카오 등은 지원하지 않음
+        String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails()
+                .getUserInfoEndpoint().getUserNameAttributeName();
 
-        OAuthAttributes attributes = OAuthAttributes.
-                of(registrationId, userNameAttributeName, oAuth2User.getAttributes());
+        // OAuth2UserService를 통해 가져온 OAuth2User의 속성을 담은 클래스이다.
+        OAuthAttributes attributes = OAuthAttributes.of(registrationId, userNameAttributeName, oAuth2User.getAttributes());
 
         User user = saveOrUpdate(attributes);
         httpSession.setAttribute("user", new SessionUser(user));
@@ -45,8 +52,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     }
 
     private User saveOrUpdate(OAuthAttributes attributes) {
+        // 사용자 정보가 업데이트 됐을 경우 데이터를 수정해줌
+
         User user = userRepository.findByEmail(attributes.getEmail())
-                .map(entity -> entity.update(attributes.getName(),attributes.getPicture()))
+
+                .map(entity -> entity.update(attributes.getName(), attributes.getPicture()))
+
                 .orElse(attributes.toEntity());
 
         return userRepository.save(user);
