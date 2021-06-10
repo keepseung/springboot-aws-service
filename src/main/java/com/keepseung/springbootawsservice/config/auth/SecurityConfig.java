@@ -24,7 +24,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     // "/" 포함한 지정된 URL들은 전체 열람 권한을 줌
                     .antMatchers("/", "/css/**", "/images/**", "/js/**", "/h2-console/**", "/profile").permitAll()
                     // "/api/v1/**"은 Role.USER 권한을 가진 사람만 가능
-                    .antMatchers("/api/v1/**").hasRole(Role.USER.name())
+                    //.antMatchers("/api/v1/**").hasRole(Role.USER.name())
                     // 나머지 URL 요청은 모두 인증된 사용자만 가능
                     .anyRequest().authenticated()
                 .and()
