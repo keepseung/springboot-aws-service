@@ -13,6 +13,23 @@ cache:
     - '$HOME/.gradle'
 script: "./gradlew clean build"
 # #
+
+before_deploy:
+    - zip -r springboot-webservice *
+    - mkdir -p deploy
+    - mv springboot-webservice.zip deploy/springboot-webservice.zip
+
+deploy:
+  provider: s3
+  access_key_id: $AWS_ACCESS_KEY # 트래비스 CI 환경변수로 등록한 값
+  secret_access_key: $AWS_SECRET_KEY # 트래비스 CI 환경변수로 등록한 값
+  bucket: springboot-webservice-buildd
+  region: ap-northeast-2
+  skip_cleanup: true
+  acl: private
+  local_dir: deploy
+  wait-until-deployed: true
+
 ## CI 실행 완료시 메일로 알림
 notifications:
   email:
